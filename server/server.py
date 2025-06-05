@@ -7,6 +7,8 @@ from config import HEADER,PORT,SERVER,DISCONNECT_MESSAGE,FORMAT
 isServerRunning = True
 ADDR = (SERVER,PORT)
 
+client_threads = {}
+
 serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 serverSocket.bind(ADDR)
 
@@ -38,6 +40,7 @@ def handle_client(conn, addr):
     conn.close()
     print(f"[DISCONNECCTED]   {addr}")
 
+"""
 def start():
 
     serverSocket.listen()
@@ -50,9 +53,44 @@ def start():
                                   args=(conn,addr))
         thread.start()
         print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
+"""
+
+def accept_connection():
+    serverSocket.listen()
+    print(f"[LISTENING] Server is listening on {SERVER}:{PORT}")
+
+    while isServerRunning:
+        try:
+            serverSocket.settimeout(1.0) # prevent blocking
+            conn,addr = serverSocket.accept()
+            thread = threading.Thread(target=handle_client,
+                                      args=(conn,addr))
+            thread.start()
+            client_threads.append(thread)
+            print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 2}")
+        except socket.timeout:
+            continue
+        except OSError:
+            break
 
 if __name__ == "__main__":
 
     print("[STARTING] Server is starting..")
-    start()
+    accept_thread = threading.Thread(target=accept_connection)
+    accept_thread.start()
 
+    while True:
+        cmd = input()
+        if cmd.lower() == "exit":
+            print("[SHUTTING DOWN] Closing server...")
+            server_running = False
+            serverSocket.close()
+            break
+
+    
+    accept_thread.join()
+
+    for t in client_threads:
+        t.join()
+    
+    print("[SERVER STOPPED]")
