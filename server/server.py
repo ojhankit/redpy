@@ -1,12 +1,18 @@
-import time
+#import time
 import threading
 import socket
-from config import HEADER,PORT,SERVER,DISCONNECT_MESSAGE,FORMAT
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+import config
 from commands.parser import parse_commands
 
 
+
 isServerRunning = True
-ADDR = (SERVER,PORT)
+ADDR = (config.SERVER,config.PORT)
 
 client_threads = {}
 
@@ -14,26 +20,25 @@ serverSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 serverSocket.bind(ADDR)
 
 def handle_client(conn, addr):
-
     print(f"[NEW CONNECTION] {addr} connected")
 
     isConnected = True
     while isConnected:
 
         try:
-            message_length = conn.recv(HEADER).decode(FORMAT)
+            message_length = conn.recv(config.HEADER).decode(config.FORMAT)
             try:
                 message_length = int(message_length.strip())
-                message = conn.recv(message_length).decode(FORMAT)
+                message = conn.recv(message_length).decode(config.FORMAT)
 
-                if message == DISCONNECT_MESSAGE:
+                if message == config.DISCONNECT_MESSAGE:
                     isConnected = False
                 
                 print(f"[{addr}] : {message}")
                 response = parse_commands(message)
                 #conn.send(f"Server Received: {message}".
-                # encode(FORMAT))
-                conn.send(response.encode(FORMAT))
+                # encode(config.FORMAT))
+                conn.send(response.encode(config.FORMAT))
 
             except Exception as e:
                 print(f"Exception occured {e}")
@@ -61,7 +66,7 @@ def start():
 
 def accept_connection():
     serverSocket.listen()
-    print(f"[LISTENING] Server is listening on {SERVER}:{PORT}")
+    print(f"[LISTENING] Server is listening on {config.SERVER}:{config.PORT}")
 
     while isServerRunning:
         try:

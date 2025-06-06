@@ -1,21 +1,23 @@
 # client side code
-
+import sys
+import os
 import socket 
-from config import HEADER, PORT, SERVER, ADDR, FORMAT, DISCONNECT_MESSAGE
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import config
 
-ADDR = (SERVER,PORT)
+ADDR = (config.SERVER,config.PORT)
 clientSocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 clientSocket.connect(ADDR)
 
 def send(message):
-    message = message.encode(FORMAT)
+    message = message.encode(config.FORMAT)
     message_length = len(message)
-    send_length = str(message_length).encode(FORMAT)
+    send_length = str(message_length).encode(config.FORMAT)
 
-    send_length += b' ' * (HEADER - len(send_length))
+    send_length += b' ' * (config.HEADER - len(send_length))
     clientSocket.send(send_length)
     clientSocket.send(message)
-    response = clientSocket.recv(2048).decode(FORMAT)
+    response = clientSocket.recv(2048).decode(config.FORMAT)
     print(f"[SERVER] {response}")
 
 if __name__ == "__main__":
@@ -23,8 +25,8 @@ if __name__ == "__main__":
     while True:
 
         message = input(">>>")
-        if message.upper() == DISCONNECT_MESSAGE:
-            send(DISCONNECT_MESSAGE)
+        if message.upper() == config.DISCONNECT_MESSAGE:
+            send(config.DISCONNECT_MESSAGE)
             break
         send(message)
     
