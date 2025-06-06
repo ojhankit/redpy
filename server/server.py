@@ -2,6 +2,7 @@ import time
 import threading
 import socket
 from config import HEADER,PORT,SERVER,DISCONNECT_MESSAGE,FORMAT
+from commands.parser import parse_commands
 
 
 isServerRunning = True
@@ -29,7 +30,10 @@ def handle_client(conn, addr):
                     isConnected = False
                 
                 print(f"[{addr}] : {message}")
-                conn.send(f"Server Received: {message}".encode(FORMAT))
+                response = parse_commands(message)
+                #conn.send(f"Server Received: {message}".
+                # encode(FORMAT))
+                conn.send(response.encode(FORMAT))
 
             except Exception as e:
                 print(f"Exception occured {e}")
